@@ -1,2 +1,1 @@
-Printf 
-Group Project
+printf group project
