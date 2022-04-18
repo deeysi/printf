@@ -1,50 +1,87 @@
 #include "main.h"
-
 /**
- * _printf - prints formatted data to stdout
- * @format: string that contains the format to print
- * Return: number of characters written
- */
-int _printf(char *format, ...)
+  * _printf - print efe
+  * @format: string to print
+  * Return: int
+  */
+int _printf(const char *format, ...)
 {
-	int written = 0, (*structype)(char *, va_list);
-	char q[3];
-	va_list pa;
+	int charCount = 0;
+	char temp = '%';
+	va_list list;
+	unsigned int charSize = sizeof(char);
 
-	if (format == NULL)
+	if (format == NULL || *format == '\0' ||
+			(*format == temp && *(format + 1) == '\0'))
 		return (-1);
-	q[2] = '\0';
-	va_start(pa, format);
-	_putchar(-1);
-	while (format[0])
+	va_start(list, format);
+	while (*format && format)
 	{
-		if (format[0] == '%')
+		if (*format != temp)
 		{
-			structype = driver(format);
-			if (structype)
-			{
-				q[0] = '%';
-				q[1] = format[1];
-				written += structype(q, pa);
-			}
-			else if (format[1] != '\0')
-			{
-				written += _putchar('%');
-				written += _putchar(format[1]);
-			}
-			else
-			{
-				written += _putchar('%');
-				break;
-			}
-			format += 2;
+			write(1, format, charSize);
+			charCount++;
 		}
 		else
 		{
-			written += _putchar(format[0]);
-			format++;
+			if (*(format + 1) == 'c'
+			|| *(format + 1) == 's' || *(format + 1) == '%'
+			|| *(format + 1) == 'd' || *(format + 1) == 'i')
+			{
+				format++;
+				charCount += suich(format, list);
+			}
+			else
+			{
+				write(1, format, charSize);
+				charCount++;
+			}
 		}
+		format++;
 	}
-	_putchar(-2);
-	return (written);
+	va_end(list);
+	return (charCount);
 }
+/**
+  * suich - switch for conversion specifiers
+  * @format: string to print
+  * @list: arguments to print
+  * Return: count of printed chars
+  */
+int suich(const char *format, va_list list)
+{
+	int charCount = 0, c, argLen = 0, charSize = sizeof(char);
+	char *s, temp = '%';
+
+	switch (*format)
+	{
+		case '%':
+			write(1, &temp, charSize);
+			charCount++;
+			break;
+		case 'c':
+			c = va_arg(list, int);
+			write(1, &c, charSize);
+			charCount++;
+			break;
+		case 's':
+			s = va_arg(list, char*);
+			if (s == NULL)
+				s = "(null)";
+			for (argLen = 0; *s != 0; argLen++, s++, charCount++)
+				write(1, s, charSize);
+			break;
+		case 'd':
+			charCount = print_number(list);
+			break;
+		case 'i':
+			charCount = print_number(list);
+			break;
+		default:
+			write(1, format, charSize);
+			charCount++;
+			break;
+	}
+	return (charCount);
+}
+
