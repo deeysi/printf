@@ -1,87 +1,82 @@
+#include <stdio.h>
+#include <stdarg.h>
+#include <unistd.h>
 #include "main.h"
+
 /**
-  * _printf - print efe
-  * @format: string to print
-  * Return: int
-  */
+ * find_correct_func - finding the format for _printf
+ * @format: format
+ * Return: NULL
+ */
+
+int (*find_correct_func(const char *format))(va_list)
+{
+unsigned int i = 0;
+code_f find_f[] = {
+{"c", print_char},
+{"s", print_string},
+{"i", print_int},
+{"d", print_dec},
+{"r", print_rev},
+{"b", print_bin},
+{"u", print_unsigned},
+{"o", print_octal},
+{"x", print_hex},
+{"X", print_HEX},
+{"R", print_rot13},
+{"S", print_S},
+{"p", print_p},
+{NULL, NULL}
+};
+
+while (find_f[i].sc)
+{
+if (find_f[i].sc[0] == (*format))
+return (find_f[i].f);
+i++;
+}
+return (NULL);
+}
+
+/**
+ * _printf - produces an output based on format
+ * @format: format
+ * Return: size
+ */
 int _printf(const char *format, ...)
 {
-	int charCount = 0;
-	char temp = '%';
-	va_list list;
-	unsigned int charSize = sizeof(char);
-
-	if (format == NULL || *format == '\0' ||
-			(*format == temp && *(format + 1) == '\0'))
-		return (-1);
-	va_start(list, format);
-	while (*format && format)
-	{
-		if (*format != temp)
-		{
-			write(1, format, charSize);
-			charCount++;
-		}
-		else
-		{
-			if (*(format + 1) == 'c'
-			|| *(format + 1) == 's' || *(format + 1) == '%'
-			|| *(format + 1) == 'd' || *(format + 1) == 'i')
-			{
-				format++;
-				charCount += suich(format, list);
-			}
-			else
-			{
-				write(1, format, charSize);
-				charCount++;
-			}
-		}
-		format++;
-	}
-	va_end(list);
-	return (charCount);
-}
-/**
-  * suich - switch for conversion specifiers
-  * @format: string to print
-  * @list: arguments to print
-  * Return: count of printed chars
-  */
-int suich(const char *format, va_list list)
+va_list list;
+int (*f)(va_list);
+unsigned int i = 0, len = 0;
+if (format == NULL)
+return (-1);
+va_start(list, format);
+while (format[i])
 {
-	int charCount = 0, c, argLen = 0, charSize = sizeof(char);
-	char *s, temp = '%';
-
-	switch (*format)
-	{
-		case '%':
-			write(1, &temp, charSize);
-			charCount++;
-			break;
-		case 'c':
-			c = va_arg(list, int);
-			write(1, &c, charSize);
-			charCount++;
-			break;
-		case 's':
-			s = va_arg(list, char*);
-			if (s == NULL)
-				s = "(null)";
-			for (argLen = 0; *s != 0; argLen++, s++, charCount++)
-				write(1, s, charSize);
-			break;
-		case 'd':
-			charCount = print_number(list);
-			break;
-		case 'i':
-			charCount = print_number(list);
-			break;
-		default:
-			write(1, format, charSize);
-			charCount++;
-			break;
-	}
-	return (charCount);
+while (format[i] != '%' && format[i])
+{
+_putchar(format[i]);
+len++;
+i++;
 }
-
+if (format[i] == '\0')
+return (len);
+f = find_correct_func(&format[i + 1]);
+if (f != NULL)
+{
+len += f(list);
+i += 2;
+continue;
+}
+if (!format[i + 1])
+return (-1);
+_putchar(format[i]);
+len++;
+if (format[i + 1] == '%')
+i += 2;
+else
+i++;
+}
+va_end(list);
+return (len);
+}
